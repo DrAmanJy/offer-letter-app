@@ -21,9 +21,10 @@ export class OfferController {
     return sendSuccess('Offers retrieved successfully', result);
   }
 
-  static async getById(req: NextRequest, { params }: { params: { id: string } }) {
+  static async getById(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     await authenticate(req);
-    const { id } = offerParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = offerParamsSchema.parse({ params: resolvedParams }).params;
     const offer = await OfferService.getById(id);
     return sendSuccess('Offer retrieved successfully', offer);
   }
@@ -40,9 +41,10 @@ export class OfferController {
     return sendSuccess('Public offer retrieved successfully', offer);
   }
 
-  static async update(req: NextRequest, { params }: { params: { id: string } }) {
+  static async update(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     const user = await authenticate(req);
-    const { id } = offerParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = offerParamsSchema.parse({ params: resolvedParams }).params;
     const body = await req.json().catch(() => ({}));
     const data = offerUpdateSchema.parse({ body }).body;
     
@@ -50,9 +52,10 @@ export class OfferController {
     return sendSuccess('Offer updated successfully', offer);
   }
   
-  static async updateStatus(req: NextRequest, { params }: { params: { id: string } }) {
+  static async updateStatus(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     const user = await authenticate(req);
-    const { id } = offerParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = offerParamsSchema.parse({ params: resolvedParams }).params;
     const body = await req.json().catch(() => ({}));
     const { status } = offerStatusUpdateSchema.parse({ body }).body;
     
@@ -60,16 +63,18 @@ export class OfferController {
     return sendSuccess('Offer status updated successfully', offer);
   }
 
-  static async delete(req: NextRequest, { params }: { params: { id: string } }) {
+  static async delete(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     const user = await authenticate(req);
-    const { id } = offerParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = offerParamsSchema.parse({ params: resolvedParams }).params;
     await OfferService.softDelete(id, user.id);
     return sendSuccess('Offer deleted successfully');
   }
 
-  static async restore(req: NextRequest, { params }: { params: { id: string } }) {
+  static async restore(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     const user = await authenticate(req);
-    const { id } = offerParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = offerParamsSchema.parse({ params: resolvedParams }).params;
     await OfferService.restore(id, user.id);
     return sendSuccess('Offer restored successfully');
   }

@@ -21,16 +21,18 @@ export class CompanyController {
     return sendSuccess('Companies retrieved successfully', result);
   }
 
-  static async getById(req: NextRequest, { params }: { params: { id: string } }) {
+  static async getById(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     await requireAdmin(req);
-    const { id } = companyParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = companyParamsSchema.parse({ params: resolvedParams }).params;
     const company = await CompanyService.getById(id);
     return sendSuccess('Company retrieved successfully', company);
   }
 
-  static async update(req: NextRequest, { params }: { params: { id: string } }) {
+  static async update(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     const adminUser = await requireAdmin(req);
-    const { id } = companyParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = companyParamsSchema.parse({ params: resolvedParams }).params;
     const body = await req.json().catch(() => ({}));
     const data = companyUpdateSchema.parse({ body }).body;
     
@@ -38,9 +40,10 @@ export class CompanyController {
     return sendSuccess('Company updated successfully', company);
   }
 
-  static async delete(req: NextRequest, { params }: { params: { id: string } }) {
+  static async delete(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     const adminUser = await requireAdmin(req);
-    const { id } = companyParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = companyParamsSchema.parse({ params: resolvedParams }).params;
     await CompanyService.delete(id, adminUser.id);
     return sendSuccess('Company deleted successfully');
   }

@@ -21,16 +21,18 @@ export class UserController {
     return sendSuccess('Users retrieved successfully', result);
   }
 
-  static async getById(req: NextRequest, { params }: { params: { id: string } }) {
+  static async getById(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     await requireAdmin(req);
-    const { id } = userParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = userParamsSchema.parse({ params: resolvedParams }).params;
     const user = await UserService.getById(id);
     return sendSuccess('User retrieved successfully', user);
   }
 
-  static async update(req: NextRequest, { params }: { params: { id: string } }) {
+  static async update(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     const adminUser = await requireAdmin(req);
-    const { id } = userParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = userParamsSchema.parse({ params: resolvedParams }).params;
     const body = await req.json().catch(() => ({}));
     const data = userUpdateSchema.parse({ body }).body;
     
@@ -38,16 +40,18 @@ export class UserController {
     return sendSuccess('User updated successfully', user);
   }
 
-  static async delete(req: NextRequest, { params }: { params: { id: string } }) {
+  static async delete(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     const adminUser = await requireAdmin(req);
-    const { id } = userParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = userParamsSchema.parse({ params: resolvedParams }).params;
     await UserService.softDelete(id, adminUser.id);
     return sendSuccess('User deleted successfully');
   }
 
-  static async restore(req: NextRequest, { params }: { params: { id: string } }) {
+  static async restore(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
     await requireAdmin(req);
-    const { id } = userParamsSchema.parse({ params }).params;
+    const resolvedParams = await params;
+    const { id } = userParamsSchema.parse({ params: resolvedParams }).params;
     await UserService.restore(id);
     return sendSuccess('User restored successfully');
   }

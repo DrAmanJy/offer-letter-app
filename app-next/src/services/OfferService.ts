@@ -67,7 +67,7 @@ ${companyName}`;
     const offerData = {
       ...data,
       reference,
-      offerContent: this.generateOfferContent(data, reference, companyName),
+      offerContent: data.offerContent || this.generateOfferContent(data, reference, companyName),
       createdBy: new mongoose.Types.ObjectId(currentUserId),
       updatedBy: new mongoose.Types.ObjectId(currentUserId),
     };
@@ -90,7 +90,11 @@ ${companyName}`;
     const companyObj = await Company.findById(data.company || offer.company);
     if (companyObj) companyName = companyObj.name;
     
-    offer.offerContent = this.generateOfferContent(offer, offer.reference, companyName);
+    if (data.offerContent !== undefined) {
+      offer.offerContent = data.offerContent;
+    } else {
+      offer.offerContent = this.generateOfferContent(offer, offer.reference, companyName);
+    }
     
     offer.updatedBy = new mongoose.Types.ObjectId(currentUserId);
     await offer.save();

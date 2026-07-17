@@ -20,7 +20,7 @@ const envSchema = z.object({
   ADMIN_NAME: z.string().min(1, 'ADMIN_NAME is required'),
   ADMIN_EMAIL: z.string().email('ADMIN_EMAIL must be a valid email'),
   ADMIN_PASSWORD: z.string().min(8, 'ADMIN_PASSWORD must be at least 8 characters'),
-  CORS_ORIGIN: z.string().min(1, 'CORS_ORIGIN is required'),
+
   BCRYPT_ROUNDS: z.string().transform(Number).default(0),
 });
 

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { CompanyService } from '../services/CompanyService';
 import { companyCreateSchema, companyUpdateSchema, companySearchSchema, companyParamsSchema } from '../lib/validation/company';
 import { sendSuccess } from '../lib/response';
-import { requireAdmin } from '../middleware/auth';
+import { authenticate, requireAdmin } from '../middleware/auth';
 
 export class CompanyController {
   static async create(req: NextRequest) {
@@ -14,7 +14,7 @@ export class CompanyController {
   }
 
   static async list(req: NextRequest) {
-    await requireAdmin(req);
+    await authenticate(req);
     const searchParams = Object.fromEntries(req.nextUrl.searchParams);
     const query = companySearchSchema.parse({ query: searchParams }).query;
     const result = await CompanyService.list(query);
@@ -22,7 +22,7 @@ export class CompanyController {
   }
 
   static async getById(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
-    await requireAdmin(req);
+    await authenticate(req);
     const resolvedParams = await params;
     const { id } = companyParamsSchema.parse({ params: resolvedParams }).params;
     const company = await CompanyService.getById(id);

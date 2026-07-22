@@ -1,6 +1,5 @@
 import * as React from "react";
 import { X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,9 +7,18 @@ interface ModalProps {
   title: string;
   description?: string;
   children: React.ReactNode;
+  size?: 'md' | 'lg' | 'xl' | '2xl' | '3xl';
 }
 
-export function Modal({ isOpen, onClose, title, description, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, description, children, size = 'md' }: ModalProps) {
+  const sizeClasses = {
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-3xl',
+    '2xl': 'max-w-4xl',
+    '3xl': 'max-w-5xl',
+  };
+
   // Close on escape key
   React.useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -21,22 +29,16 @@ export function Modal({ isOpen, onClose, title, description, children }: ModalPr
   }, [onClose]);
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
         <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl pointer-events-auto flex flex-col max-h-[90vh]"
+            <div
+              className={`w-full ${sizeClasses[size]} bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl pointer-events-auto flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200`}
             >
               <div className="flex items-center justify-between p-6 border-b border-zinc-200 dark:border-zinc-800">
                 <div>
@@ -53,10 +55,10 @@ export function Modal({ isOpen, onClose, title, description, children }: ModalPr
               <div className="p-6 overflow-y-auto">
                 {children}
               </div>
-            </motion.div>
+            </div>
           </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }

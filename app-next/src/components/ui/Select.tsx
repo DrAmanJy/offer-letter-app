@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -57,14 +56,10 @@ export function CustomSelect({
         <ChevronDown className="h-4 w-4 opacity-50" />
       </button>
 
-      <AnimatePresence>
+      <>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.15 }}
-            className="absolute z-50 mt-1 max-h-60 min-w-full overflow-y-auto overflow-x-hidden rounded-md border border-zinc-200 bg-white p-1 text-sm shadow-md dark:border-zinc-800 dark:bg-zinc-950 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          <div
+            className="absolute z-50 mt-1 max-h-60 min-w-full overflow-y-auto overflow-x-hidden rounded-md border border-zinc-200 bg-white p-1 text-sm shadow-md dark:border-zinc-800 dark:bg-zinc-950 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] animate-in fade-in zoom-in-95 duration-150"
           >
             {options.map((option) => (
               <div
@@ -86,9 +81,9 @@ export function CustomSelect({
                 <span>{option.label}</span>
               </div>
             ))}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </div>
   );
 }

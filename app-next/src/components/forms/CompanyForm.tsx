@@ -10,14 +10,16 @@ import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { ICompanyDTO } from "@/types/company";
 
 const schema = z.object({
   name: z.string().min(1, "Company name is required"),
+  defaultOfferTemplate: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
 
-export function CompanyForm({ onSuccess, initialData }: { onSuccess: () => void, initialData?: any }) {
+export function CompanyForm({ onSuccess, onCancel, initialData }: { onSuccess: () => void, onCancel: () => void, initialData?: ICompanyDTO }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -26,7 +28,7 @@ export function CompanyForm({ onSuccess, initialData }: { onSuccess: () => void,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: initialData ? { name: initialData.name } : undefined,
+    defaultValues: initialData ? { name: initialData.name, defaultOfferTemplate: initialData.defaultOfferTemplate || "" } : undefined,
   });
 
   const onSubmit = async (data: FormValues) => {
@@ -67,10 +69,24 @@ export function CompanyForm({ onSuccess, initialData }: { onSuccess: () => void,
           <p className="text-xs text-red-500">{errors.name.message}</p>
         )}
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="defaultOfferTemplate">Default Offer Template (Optional)</Label>
+        <textarea
+          id="defaultOfferTemplate"
+          placeholder="Enter default template text for this company..."
+          disabled={isLoading}
+          {...register("defaultOfferTemplate")}
+          className="flex min-h-[120px] w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:focus-visible:ring-zinc-300"
+        />
+      </div>
       
-      <div className="pt-4 flex justify-end">
+      <div className="pt-4 flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+          Cancel
+        </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? (initialData ? "Updating..." : "Creating...") : (initialData ? "Update Company" : "Create Company")}
+          {isLoading ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>

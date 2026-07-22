@@ -7,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
-import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -22,7 +21,7 @@ import {
 } from "@/components/ui/Card";
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
+  username: z.string().min(1, { message: "Username is required" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
 
@@ -63,36 +62,31 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4">
       <Toaster position="top-center" />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md"
-      >
-        <Card className="w-full shadow-lg border-zinc-200/50 dark:border-zinc-800/50">
+      <div className="w-full max-w-md">
+        <Card className="w-full shadow-md border-zinc-200 dark:border-zinc-800">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold tracking-tight">
               Welcome back
             </CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">
-              Enter your email and password to access your account
+              Enter your username and password to access your account
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
+                  id="username"
+                  type="text"
+                  placeholder="Enter username"
                   disabled={isLoading}
-                  {...register("email")}
-                  className={errors.email ? "border-red-500" : ""}
+                  {...register("username")}
+                  className={errors.username ? "border-red-500" : ""}
                 />
-                {errors.email && (
+                {errors.username && (
                   <p className="text-xs text-red-500 font-medium">
-                    {errors.email.message}
+                    {errors.username.message}
                   </p>
                 )}
               </div>
@@ -126,7 +120,7 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }

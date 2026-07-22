@@ -38,6 +38,7 @@ export const offerCreateSchema = z.object({
 export const offerUpdateSchema = z.object({
   body: z.object({
     company: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid company ID format').optional(),
+    status: z.enum(['Draft', 'Pending', 'Approved', 'Rejected', 'Sent', 'Accepted']).optional(),
     employee: z.object({
       name: z.string().min(1).optional(),
       email: z.string().email().optional(),

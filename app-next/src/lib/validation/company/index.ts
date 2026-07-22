@@ -3,12 +3,16 @@ import { z } from 'zod';
 export const companyCreateSchema = z.object({
   body: z.object({
     name: z.string().min(1, 'Company name is required'),
+    address: z.string().optional(),
+    defaultOfferTemplate: z.string().optional(),
   }).strict(),
 });
 
 export const companyUpdateSchema = z.object({
   body: z.object({
     name: z.string().min(1).optional(),
+    address: z.string().optional(),
+    defaultOfferTemplate: z.string().optional(),
   }).strict(),
 });
 

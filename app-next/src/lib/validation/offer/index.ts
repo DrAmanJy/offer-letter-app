@@ -31,7 +31,7 @@ export const offerCreateSchema = z.object({
     }).strict(),
     terms: z.string().optional(),
     offerContent: z.string().min(1, 'Offer content is required'),
-    status: z.enum(['Draft', 'Sent', 'Opened', 'Accepted', 'Rejected', 'Cancelled', 'Expired']).optional().default('Draft'),
+    status: z.enum(['Draft', 'Pending', 'Approved', 'Rejected', 'Sent', 'Accepted']).optional().default('Draft'),
   }).strict(),
 });
 
@@ -65,14 +65,14 @@ export const offerUpdateSchema = z.object({
 
 export const offerStatusUpdateSchema = z.object({
   body: z.object({
-    status: z.enum(['Draft', 'Sent', 'Opened', 'Accepted', 'Rejected', 'Cancelled', 'Expired']),
+    status: z.enum(['Draft', 'Pending', 'Approved', 'Rejected', 'Sent', 'Accepted']),
   }).strict(),
 });
 
 export const offerSearchSchema = z.object({
   query: z.object({
     q: z.string().optional(),
-    status: z.enum(['Draft', 'Sent', 'Opened', 'Accepted', 'Rejected', 'Cancelled', 'Expired']).optional(),
+    status: z.enum(['Draft', 'Pending', 'Approved', 'Rejected', 'Sent', 'Accepted']).optional(),
     page: z.string().regex(/^\d+$/).transform(Number).optional().default(1),
     limit: z.string().regex(/^\d+$/).transform(Number).optional().default(10),
     sortBy: z.enum(['createdAt', 'updatedAt', 'reference']).optional().default('createdAt'),

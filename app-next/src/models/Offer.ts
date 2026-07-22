@@ -61,11 +61,7 @@ const offerSchema = new Schema<IOffer>(
     },
     terms: { type: String },
     offerContent: { type: String, required: true },
-    status: {
-      type: String,
-      enum: ['Draft', 'Sent', 'Opened', 'Accepted', 'Rejected', 'Cancelled', 'Expired'],
-      default: 'Draft',
-    },
+    status: { type: String, enum: ['Draft', 'Pending', 'Approved', 'Rejected', 'Sent', 'Accepted'], default: 'Draft' },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     isDeleted: { type: Boolean, default: false },

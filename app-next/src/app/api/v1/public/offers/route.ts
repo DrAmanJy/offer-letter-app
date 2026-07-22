@@ -2,6 +2,7 @@ import { OfferController } from '@/controllers/OfferController';
 import { withErrorHandler } from '@/middleware/errorHandler';
 import { connectDB } from '@/infrastructure/database/mongoose';
 import { NextRequest, NextResponse } from 'next/server';
+import { env } from '@/config/env';
 
 export const GET = withErrorHandler(async (req: NextRequest) => {
   await connectDB();
@@ -12,7 +13,7 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
   const res = NextResponse.json(data, { status: response.status });
   
   // Add CORS headers to allow other sites to fetch this data
-  res.headers.set('Access-Control-Allow-Origin', '*');
+  res.headers.set('Access-Control-Allow-Origin', env.CORS_ORIGIN);
   res.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
@@ -21,7 +22,7 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
 
 export const OPTIONS = async () => {
   const res = new NextResponse(null, { status: 204 });
-  res.headers.set('Access-Control-Allow-Origin', '*');
+  res.headers.set('Access-Control-Allow-Origin', env.CORS_ORIGIN);
   res.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   return res;

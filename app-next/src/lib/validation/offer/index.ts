@@ -72,7 +72,7 @@ export const offerStatusUpdateSchema = z.object({
 export const offerSearchSchema = z.object({
   query: z.object({
     q: z.string().optional(),
-    status: z.enum(['Draft', 'Pending', 'Approved', 'Rejected', 'Sent', 'Accepted']).optional(),
+    status: z.union([z.enum(['Draft', 'Pending', 'Approved', 'Rejected', 'Sent', 'Accepted']), z.literal('')]).optional().transform(val => val === '' ? undefined : val),
     page: z.string().regex(/^\d+$/).transform(Number).optional().default(1),
     limit: z.string().regex(/^\d+$/).transform(Number).optional().default(10),
     sortBy: z.enum(['createdAt', 'updatedAt', 'reference']).optional().default('createdAt'),

@@ -325,8 +325,32 @@ ${companyName}`;
     setValue("offerContent", newContent, { shouldValidate: true });
   };
 
-  const insertToken = (token: string) => {
-    const newContent = (currentOfferContent || "") + " " + token;
+  const insertToken = (tokenKey: string) => {
+    let valueToInsert = "";
+    switch (tokenKey) {
+      case "candidate_name":
+        valueToInsert = employeeName ? employeeName.toUpperCase() : "[CANDIDATE NAME]";
+        break;
+      case "position":
+        valueToInsert = position || "[JOB POSITION]";
+        break;
+      case "salary":
+        valueToInsert = `${currency || "USD"} ${salary || "0"}`;
+        break;
+      case "company_name":
+        valueToInsert = companyName || "[COMPANY NAME]";
+        break;
+      case "joining_date":
+        valueToInsert = joiningDate || "[JOINING DATE]";
+        break;
+      case "department":
+        valueToInsert = departmentStr || "[DEPARTMENT]";
+        break;
+      default:
+        valueToInsert = tokenKey;
+        break;
+    }
+    const newContent = (currentOfferContent || "") + " " + valueToInsert;
     setValue("offerContent", newContent, { shouldValidate: true });
   };
 
@@ -641,20 +665,20 @@ ${companyName}`;
 
               <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-zinc-200/60 dark:border-zinc-800/60">
                 <span className="text-zinc-400 font-semibold mr-1">Insert Field Token:</span>
-                <button type="button" onClick={() => insertToken("{status}")} className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 hover:text-white rounded border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-mono font-bold transition-all">
-                  status
-                </button>
-                <button type="button" onClick={() => insertToken("{candidate_name}")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
+                <button type="button" onClick={() => insertToken("candidate_name")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
                   candidate_name
                 </button>
-                <button type="button" onClick={() => insertToken("{position}")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
+                <button type="button" onClick={() => insertToken("position")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
                   position
                 </button>
-                <button type="button" onClick={() => insertToken("{salary}")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
+                <button type="button" onClick={() => insertToken("salary")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
                   salary
                 </button>
-                <button type="button" onClick={() => insertToken("{company_name}")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
+                <button type="button" onClick={() => insertToken("company_name")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
                   company_name
+                </button>
+                <button type="button" onClick={() => insertToken("joining_date")} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white rounded border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono transition-all">
+                  joining_date
                 </button>
               </div>
             </div>

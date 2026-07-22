@@ -5,16 +5,16 @@ import mongoose from 'mongoose';
 
 export class UserService {
   static async create(data: Partial<IUser>) {
-    const existing = await User.findOne({ email: data.email?.toLowerCase(), isDeleted: false });
+    const existing = await User.findOne({ username: data.username?.toLowerCase(), isDeleted: false });
     if (existing) {
-      throw new ValidationError('Email already in use');
+      throw new ValidationError('Username already in use');
     }
 
     if (data.password) {
       data.password = await hashPassword(data.password);
     }
     
-    data.email = data.email?.toLowerCase();
+    data.username = data.username?.toLowerCase();
     
     const user = await User.create(data);
     const userObj = user.toObject();
@@ -35,11 +35,11 @@ export class UserService {
       }
     }
 
-    if (data.email) {
-      data.email = data.email.toLowerCase();
-      const existing = await User.findOne({ email: data.email, _id: { $ne: id }, isDeleted: false });
+    if (data.username) {
+      data.username = data.username.toLowerCase();
+      const existing = await User.findOne({ username: data.username, _id: { $ne: id }, isDeleted: false });
       if (existing) {
-        throw new ValidationError('Email already in use');
+        throw new ValidationError('Username already in use');
       }
     }
 
@@ -56,7 +56,7 @@ export class UserService {
   }
 
   static async getById(id: string) {
-    const user = await User.findOne({ _id: id, isDeleted: false });
+    const user = await User.findOne({ _id: id, isDeleted: false }).select('-password');
     if (!user) {
       throw new NotFoundError('User not found');
     }
@@ -64,20 +64,21 @@ export class UserService {
   }
 
   static async list(query: { q?: string; page: number; limit: number; sortBy: string; sortOrder: string }) {
-    const filter: any = { isDeleted: false };
+    const filter: Record<string, any> = { isDeleted: false };
     
     if (query.q) {
+      const escapedQ = query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.$or = [
-        { name: { $regex: query.q, $options: 'i' } },
-        { email: { $regex: query.q, $options: 'i' } },
+        { username: { $regex: escapedQ, $options: 'i' } },
+        { name: { $regex: escapedQ, $options: 'i' } },
       ];
     }
 
-    const sort: any = { [query.sortBy]: query.sortOrder === 'asc' ? 1 : -1 };
+    const sort: Record<string, 1 | -1> = { [query.sortBy]: query.sortOrder === 'asc' ? 1 : -1 };
     const skip = (query.page - 1) * query.limit;
 
     const [data, total] = await Promise.all([
-      User.find(filter).sort(sort).skip(skip).limit(query.limit).lean(),
+      User.find(filter).sort(sort).skip(skip).limit(query.limit).select('-password').lean(),
       User.countDocuments(filter),
     ]);
 

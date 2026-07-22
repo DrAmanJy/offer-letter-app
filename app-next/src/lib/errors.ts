@@ -33,3 +33,15 @@ export class NotFoundError extends AppError {
     super(message, 404);
   }
 }
+
+export class ConflictError extends AppError {
+  constructor(message = 'Resource conflict') {
+    super(message, 409);
+  }
+}
+
+export class BadRequestError extends AppError {
+  constructor(message = 'Bad request') {
+    super(message, 400);
+  }
+}

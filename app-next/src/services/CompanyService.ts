@@ -4,7 +4,8 @@ import mongoose from 'mongoose';
 
 export class CompanyService {
   static async create(data: { name: string }, userId: string) {
-    const existing = await Company.findOne({ name: { $regex: new RegExp(`^${data.name}$`, 'i') }, isDeleted: false });
+    const escapedName = data.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const existing = await Company.findOne({ name: { $regex: new RegExp(`^${escapedName}$`, 'i') }, isDeleted: false });
     if (existing) {
       throw new AppError('Company with this name already exists', 400);
     }
@@ -18,16 +19,16 @@ export class CompanyService {
     return company;
   }
 
-  static async list(query: any) {
+  static async list(query: { q?: string; page?: number; limit?: number; sortBy?: string; sortOrder?: string }) {
     const { q, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = query;
     const skip = (page - 1) * limit;
 
-    const filter: any = { isDeleted: false };
+    const filter: Record<string, any> = { isDeleted: false };
     if (q) {
       filter.$text = { $search: q };
     }
 
-    const sort: any = {};
+    const sort: Record<string, any> = {};
     if (q) {
       sort.score = { $meta: 'textScore' };
     } else {
@@ -62,7 +63,8 @@ export class CompanyService {
     }
 
     if (data.name && data.name !== company.name) {
-      const existing = await Company.findOne({ name: { $regex: new RegExp(`^${data.name}$`, 'i') }, isDeleted: false, _id: { $ne: id } });
+      const escapedName = data.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const existing = await Company.findOne({ name: { $regex: new RegExp(`^${escapedName}$`, 'i') }, isDeleted: false, _id: { $ne: id } });
       if (existing) {
         throw new AppError('Company with this name already exists', 400);
       }

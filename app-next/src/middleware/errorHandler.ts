@@ -6,7 +6,8 @@ import { sendError } from '../lib/response';
 import mongoose from 'mongoose';
 import { env } from '../config/env';
 
-export const handleApiError = (err: any): NextResponse => {
+export const handleApiError = (err: any, req?: Request): NextResponse => {
+  const correlationId = req?.headers.get('x-correlation-id') || 'unknown';
   if (err instanceof AppError) {
     return sendError(err.message, err.errors, err.statusCode);
   }
@@ -44,8 +45,12 @@ export const handleApiError = (err: any): NextResponse => {
       return sendError('Invalid token', undefined, 401);
   }
 
+  if (err instanceof SyntaxError) {
+      return sendError('Invalid JSON payload', undefined, 400);
+  }
+
   // Unknown Errors
-  logger.error(err);
+  logger.error({ err, correlationId });
 
   const message = env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message || 'An unknown error occurred';
   return sendError(message, undefined, 500);
@@ -54,9 +59,22 @@ export const handleApiError = (err: any): NextResponse => {
 export function withErrorHandler(handler: Function) {
   return async (...args: any[]) => {
     try {
+      const req = args[0] as Request;
+      if (req && req.method && ['POST', 'PUT', 'PATCH'].includes(req.method)) {
+        const contentType = req.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          return sendError('Unsupported Media Type: application/json required', undefined, 415);
+        }
+
+        const contentLength = req.headers.get('content-length');
+        if (contentLength && parseInt(contentLength, 10) > 1048576) {
+          return sendError('Payload Too Large: maximum 1MB allowed', undefined, 413);
+        }
+      }
       return await handler(...args);
-    } catch (err: any) {
-      return handleApiError(err);
+    } catch (err: unknown) {
+      const req = args[0] as Request;
+      return handleApiError(err, req);
     }
   };
 }

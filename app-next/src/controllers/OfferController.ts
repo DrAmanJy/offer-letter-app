@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { OfferService } from '../services/OfferService';
-import { offerCreateSchema, offerUpdateSchema, offerStatusUpdateSchema, offerSearchSchema, offerParamsSchema } from '../validators/offer';
+import { offerCreateSchema, offerUpdateSchema, offerStatusUpdateSchema, offerSearchSchema, offerParamsSchema } from '../lib/validation/offer';
 import { sendSuccess } from '../lib/response';
 import { authenticate } from '../middleware/auth';
 

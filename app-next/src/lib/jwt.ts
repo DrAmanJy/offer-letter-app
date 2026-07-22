@@ -1,26 +1,38 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import { env } from '../config/env';
 
 export interface JwtPayload {
   sub: string;
 }
 
-export const generateAccessToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-    expiresIn: env.JWT_ACCESS_EXPIRES as any,
+export const generateAccessToken = async (payload: JwtPayload): Promise<string> => {
+  const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime(env.JWT_ACCESS_EXPIRES)
+    .sign(secret);
+};
+
+export const generateRefreshToken = async (payload: JwtPayload): Promise<string> => {
+  const secret = new TextEncoder().encode(env.JWT_REFRESH_SECRET);
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime(env.JWT_REFRESH_EXPIRES)
+    .sign(secret);
+};
+
+export const verifyAccessToken = async (token: string): Promise<JwtPayload> => {
+  const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
+  const { payload } = await jwtVerify(token, secret, {
+    algorithms: ['HS256'],
   });
+  return payload as unknown as JwtPayload;
 };
 
-export const generateRefreshToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-    expiresIn: env.JWT_REFRESH_EXPIRES as any,
+export const verifyRefreshToken = async (token: string): Promise<JwtPayload> => {
+  const secret = new TextEncoder().encode(env.JWT_REFRESH_SECRET);
+  const { payload } = await jwtVerify(token, secret, {
+    algorithms: ['HS256'],
   });
-};
-
-export const verifyAccessToken = (token: string): JwtPayload => {
-  return jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtPayload;
-};
-
-export const verifyRefreshToken = (token: string): JwtPayload => {
-  return jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtPayload;
+  return payload as unknown as JwtPayload;
 };

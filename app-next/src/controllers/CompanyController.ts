@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { CompanyService } from '../services/CompanyService';
-import { companyCreateSchema, companyUpdateSchema, companySearchSchema, companyParamsSchema } from '../validators/company';
+import { companyCreateSchema, companyUpdateSchema, companySearchSchema, companyParamsSchema } from '../lib/validation/company';
 import { sendSuccess } from '../lib/response';
 import { requireAdmin } from '../middleware/auth';
 

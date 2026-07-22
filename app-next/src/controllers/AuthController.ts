@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { AuthService } from '../services/AuthService';
-import { loginSchema } from '../validators/auth/login.schema';
-import { refreshSchema } from '../validators/auth/refresh.schema';
+import { loginSchema } from '../lib/validation/auth/login.schema';
+import { refreshSchema } from '../lib/validation/auth/refresh.schema';
 import { setAuthCookies, clearAuthCookies } from '../lib/cookies';
 import { sendSuccess } from '../lib/response';
 import { logger } from '../infrastructure/logger';
@@ -10,12 +10,12 @@ import { authenticate } from '../middleware/auth';
 export class AuthController {
   static async login(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
-    const { email, password } = loginSchema.parse({ body }).body;
+    const data = loginSchema.parse({ body }).body;
     
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
     const userAgent = req.headers.get('user-agent') || '';
     
-    const { user, accessToken, refreshTokenStr } = await AuthService.login(email, password, ip, userAgent);
+    const { user, accessToken, refreshTokenStr } = await AuthService.login(data.username, data.password, ip, userAgent);
     
     await setAuthCookies(accessToken, refreshTokenStr);
     logger.info(`User logged in successfully: ${user._id}`);

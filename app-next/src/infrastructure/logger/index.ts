@@ -12,3 +12,17 @@ const transports = env.NODE_ENV === 'production'
     });
 
 export const logger = transports ? pino({ level: 'debug' }, transports) : pino({ level: 'info' });
+
+export const auditLog = (
+  action: string,
+  details: {
+    who: string;
+    what: string;
+    resourceId?: string;
+    ip?: string;
+    userAgent?: string;
+    success: boolean;
+  }
+) => {
+  logger.info({ type: 'AUDIT', action, ...details });
+};

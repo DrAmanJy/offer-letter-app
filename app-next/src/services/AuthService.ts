@@ -1,49 +1,62 @@
-import { User } from '../models/User';
-import { RefreshToken } from '../models/RefreshToken';
-import { hashPassword, comparePassword } from '../lib/password';
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../lib/jwt';
-import { UnauthorizedError } from '../lib/errors';
-import { logger } from '../infrastructure/logger';
-import { env } from '../config/env';
+import { User } from "../models/User";
+import { RefreshToken } from "../models/RefreshToken";
+import { hashPassword, comparePassword } from "../lib/password";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../lib/jwt";
+import { UnauthorizedError } from "../lib/errors";
+import { logger } from "../infrastructure/logger";
+import { env } from "../config/env";
+import crypto from "crypto";
 
 export class AuthService {
-  static async login(email: string, pass: string, ip?: string, userAgent?: string) {
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
-    
+  static async login(
+    username: string,
+    pass: string,
+    ip?: string,
+    userAgent?: string,
+  ) {
+    const identifier = username.toLowerCase();
+    const user = await User.findOne({ username: identifier }).select("+password");
     if (!user) {
-      logger.warn(`Login failed: Unknown email ${email}`);
-      throw new UnauthorizedError('Invalid email or password');
+      logger.warn(`Login failed for username: ${username}`);
+      throw new UnauthorizedError("Invalid credentials");
     }
-    
+
     if (user.isDeleted) {
       logger.warn(`Login failed: Deleted user ${user._id}`);
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError("Invalid credentials");
     }
-    
+
     if (!user.active) {
       logger.warn(`Login failed: Inactive user ${user._id}`);
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError("Invalid credentials");
     }
 
     const isMatch = await comparePassword(pass, user.password!);
     if (!isMatch) {
       logger.warn(`Login failed: Failed password for user ${user._id}`);
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError("Invalid username or password");
     }
 
     const payload = { sub: user._id.toString() };
-    const accessToken = generateAccessToken(payload);
-    const refreshTokenStr = generateRefreshToken(payload);
+    const accessToken = await generateAccessToken(payload);
+    const refreshTokenStr = await generateRefreshToken(payload);
 
-    const hashedRefreshToken = await hashPassword(refreshTokenStr);
-    
+    const hashedRefreshToken = crypto
+      .createHash("sha256")
+      .update(refreshTokenStr)
+      .digest("hex");
+
     // Convert duration to MS
     const match = env.JWT_REFRESH_EXPIRES.match(/^(\d+)([a-z]+)$/);
     let ms = 30 * 24 * 60 * 60 * 1000;
     if (match) {
       const val = parseInt(match[1]);
-      if (match[2] === 'd') ms = val * 24 * 60 * 60 * 1000;
-      if (match[2] === 'm') ms = val * 60 * 1000;
+      if (match[2] === "d") ms = val * 24 * 60 * 60 * 1000;
+      if (match[2] === "m") ms = val * 60 * 1000;
     }
 
     await RefreshToken.create({
@@ -69,16 +82,20 @@ export class AuthService {
     if (refreshToken) {
       // Best effort revoke specific token
       try {
-        const payload = verifyRefreshToken(refreshToken);
+        const payload = await verifyRefreshToken(refreshToken);
         if (payload && payload.sub === userId) {
-          const tokens = await RefreshToken.find({ userId, revoked: false });
-          for (const t of tokens) {
-            const isMatch = await comparePassword(refreshToken, t.tokenHash);
-            if (isMatch) {
-              t.revoked = true;
-              await t.save();
-              break;
-            }
+          const hashedToken = crypto
+            .createHash("sha256")
+            .update(refreshToken)
+            .digest("hex");
+          const t = await RefreshToken.findOne({
+            userId,
+            tokenHash: hashedToken,
+            revoked: false,
+          });
+          if (t) {
+            t.revoked = true;
+            await t.save();
           }
         }
       } catch (err) {
@@ -90,28 +107,32 @@ export class AuthService {
 
   static async refresh(token: string, ip?: string, userAgent?: string) {
     try {
-      const payload = verifyRefreshToken(token);
-      
+      const payload = await verifyRefreshToken(token);
+
       const user = await User.findById(payload.sub);
       if (!user || user.isDeleted || !user.active) {
-        logger.warn(`Refresh failed: User not found or inactive for sub ${payload.sub}`);
-        throw new UnauthorizedError('Invalid refresh token');
+        logger.warn(
+          `Refresh failed: User not found or inactive for sub ${payload.sub}`,
+        );
+        throw new UnauthorizedError("Invalid refresh token");
       }
 
-      const activeTokens = await RefreshToken.find({ userId: user._id, revoked: false, expiresAt: { $gt: new Date() } });
-      
-      let matchedTokenDoc = null;
-      for (const t of activeTokens) {
-        const isMatch = await comparePassword(token, t.tokenHash);
-        if (isMatch) {
-          matchedTokenDoc = t;
-          break;
-        }
-      }
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+      const matchedTokenDoc = await RefreshToken.findOne({
+        userId: user._id,
+        tokenHash: hashedToken,
+        revoked: false,
+        expiresAt: { $gt: new Date() },
+      });
 
       if (!matchedTokenDoc) {
-        logger.warn(`Refresh failed: Expired or unrecorded refresh token for user ${user._id}`);
-        throw new UnauthorizedError('Invalid refresh token');
+        logger.warn(
+          `Refresh failed: Expired or unrecorded refresh token for user ${user._id}`,
+        );
+        throw new UnauthorizedError("Invalid refresh token");
       }
 
       // Rotate
@@ -120,17 +141,20 @@ export class AuthService {
       await matchedTokenDoc.save();
 
       const newPayload = { sub: user._id.toString() };
-      const newAccessToken = generateAccessToken(newPayload);
-      const newRefreshTokenStr = generateRefreshToken(newPayload);
+      const newAccessToken = await generateAccessToken(newPayload);
+      const newRefreshTokenStr = await generateRefreshToken(newPayload);
 
-      const hashedNewRefreshToken = await hashPassword(newRefreshTokenStr);
-      
+      const hashedNewRefreshToken = crypto
+        .createHash("sha256")
+        .update(newRefreshTokenStr)
+        .digest("hex");
+
       const match = env.JWT_REFRESH_EXPIRES.match(/^(\d+)([a-z]+)$/);
       let ms = 30 * 24 * 60 * 60 * 1000;
       if (match) {
         const val = parseInt(match[1]);
-        if (match[2] === 'd') ms = val * 24 * 60 * 60 * 1000;
-        if (match[2] === 'm') ms = val * 60 * 1000;
+        if (match[2] === "d") ms = val * 24 * 60 * 60 * 1000;
+        if (match[2] === "m") ms = val * 60 * 1000;
       }
 
       await RefreshToken.create({
@@ -143,19 +167,20 @@ export class AuthService {
 
       return { accessToken: newAccessToken, refreshToken: newRefreshTokenStr };
     } catch (err) {
-      throw new UnauthorizedError('Invalid refresh token');
+      throw new UnauthorizedError("Invalid refresh token");
     }
   }
 
   static async me(userId: string) {
     const user = await User.findById(userId);
     if (!user || user.isDeleted || !user.active) {
-      throw new UnauthorizedError('User not found or inactive');
+      throw new UnauthorizedError("User not found or inactive");
     }
     return {
       id: user._id,
       name: user.name,
-      email: user.email,
+      username: user.username,
+      role: user.role,
     };
   }
 }

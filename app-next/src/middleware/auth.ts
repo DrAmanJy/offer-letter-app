@@ -11,7 +11,7 @@ export const authenticate = async (req: NextRequest) => {
       throw new UnauthorizedError('Authentication required');
     }
 
-    const payload = verifyAccessToken(accessToken);
+    const payload = await verifyAccessToken(accessToken);
     const user = await User.findById(payload.sub);
 
     if (!user || user.isDeleted || !user.active) {
@@ -20,6 +20,7 @@ export const authenticate = async (req: NextRequest) => {
 
     return {
       id: user._id.toString(),
+      role: user.role,
     };
   } catch (error) {
     logger.warn('Authentication failed: Invalid or missing token');
@@ -28,9 +29,17 @@ export const authenticate = async (req: NextRequest) => {
 };
 
 export const requireAdmin = async (req: NextRequest) => {
-  return await authenticate(req);
+  const user = await authenticate(req);
+  if (user.role !== 'ADMIN') {
+    throw new ForbiddenError('Admin access required');
+  }
+  return user;
 };
 
 export const requireHR = async (req: NextRequest) => {
-  return await authenticate(req);
+  const user = await authenticate(req);
+  if (user.role !== 'ADMIN' && user.role !== 'HR') {
+    throw new ForbiddenError('HR access required');
+  }
+  return user;
 };

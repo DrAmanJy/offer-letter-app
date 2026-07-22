@@ -8,16 +8,25 @@ import { logger } from '../infrastructure/logger';
 export class OfferService {
   private static async generateReference(): Promise<string> {
     const year = new Date().getFullYear();
-    const counterId = `OFF-${year}`;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let isUnique = false;
+    let reference = '';
     
-    const counter = await Counter.findByIdAndUpdate(
-      counterId,
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
+    while (!isUnique) {
+      let randomCode = '';
+      const randomBytes = require('crypto').randomBytes(6);
+      for (let i = 0; i < 6; i++) {
+        randomCode += chars[randomBytes[i] % chars.length];
+      }
+      reference = `OFF-${year}-${randomCode}`;
+      
+      const existing = await Offer.findOne({ reference });
+      if (!existing) {
+        isUnique = true;
+      }
+    }
     
-    const sequence = counter.seq.toString().padStart(6, '0');
-    return `${counterId}-${sequence}`;
+    return reference;
   }
 
   private static generateOfferContent(data: Partial<IOffer>, reference: string, companyName: string): string {
@@ -118,8 +127,8 @@ ${companyName}`;
 
   static async getById(id: string) {
     const offer = await Offer.findOne({ _id: id, isDeleted: false })
-      .populate('createdBy', 'name email')
-      .populate('updatedBy', 'name email')
+      .populate('createdBy', 'name username')
+      .populate('updatedBy', 'name username')
       .lean();
       
     if (!offer) throw new NotFoundError('Offer not found');
@@ -128,6 +137,7 @@ ${companyName}`;
 
   static async getPublicOffer(companyId: string, reference: string) {
     const offer = await Offer.findOne({ company: companyId, reference, isDeleted: false })
+      .select('-createdBy -updatedBy -isDeleted -deletedAt -deletedBy')
       .populate('company', 'name')
       .lean();
       
@@ -143,7 +153,15 @@ ${companyName}`;
     }
     
     if (query.q) {
-      filter.$text = { $search: query.q };
+      const escapedQ = query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const companies = await Company.find({ name: { $regex: escapedQ, $options: 'i' }, isDeleted: false }).select('_id');
+      const companyIds = companies.map(c => c._id);
+      
+      filter.$or = [
+        { reference: { $regex: escapedQ, $options: 'i' } },
+        { 'employee.name': { $regex: escapedQ, $options: 'i' } },
+        { company: { $in: companyIds } }
+      ];
     }
 
     const sort: any = { [query.sortBy]: query.sortOrder === 'asc' ? 1 : -1 };
@@ -154,7 +172,7 @@ ${companyName}`;
         .sort(sort)
         .skip(skip)
         .limit(query.limit)
-        .populate('createdBy', 'name email')
+        .populate('createdBy', 'name username')
         .lean(),
       Offer.countDocuments(filter),
     ]);

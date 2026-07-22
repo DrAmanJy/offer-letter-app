@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { UserService } from '../services/UserService';
-import { userCreateSchema, userUpdateSchema, userSearchSchema, userParamsSchema } from '../validators/user';
+import { userCreateSchema, userUpdateSchema, userSearchSchema, userParamsSchema } from '../lib/validation/user';
 import { sendSuccess } from '../lib/response';
 import { requireAdmin } from '../middleware/auth';
 

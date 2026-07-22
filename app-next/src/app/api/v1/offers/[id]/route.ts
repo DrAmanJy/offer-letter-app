@@ -13,6 +13,11 @@ export const PATCH = withErrorHandler(async (req: NextRequest, { params }: { par
   return OfferController.update(req, { params });
 });
 
+export const PUT = withErrorHandler(async (req: NextRequest, { params }: { params: { id: string } }) => {
+  await connectDB();
+  return OfferController.update(req, { params });
+});
+
 export const DELETE = withErrorHandler(async (req: NextRequest, { params }: { params: { id: string } }) => {
   await connectDB();
   return OfferController.delete(req, { params });

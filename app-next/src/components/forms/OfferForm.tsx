@@ -126,13 +126,11 @@ export function OfferForm({ onSuccess, onCancel, initialData }: { onSuccess: () 
   const generateTemplate = (preset: 'standard' | 'tech' | 'executive' | 'remote' | 'sales' | 'contractor') => {
     let template = "";
     const nameStr = employeeName ? employeeName.toUpperCase() : '[CANDIDATE NAME]';
-    const statusStr = currentStatus.toUpperCase();
 
     if (preset === 'standard') {
       template = `CONFIDENTIAL FORMAL OFFER OF EMPLOYMENT
 
 DATE: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-STATUS: ${statusStr}
 TO: ${nameStr}
 
 Dear ${nameStr},
@@ -146,7 +144,6 @@ Employment Status: ${watch("employment.employmentType") || 'Full-Time'}
 Primary Work Location: ${location || 'Main Corporate Office'}
 Scheduled Start Date: ${joiningDate || '[JOINING DATE]'}
 Standard Hours: ${hoursStr}
-Current Offer Status: ${statusStr}
 
 2. FINANCIAL COMPENSATION & PAYROLL
 Your initial base compensation will be ${currency || 'USD'} ${salary || '0'} per annum, paid bi-weekly in accordance with the standard payroll schedule of ${companyName}. Annual compensation is subject to review based on individual performance and company milestone evaluations.
@@ -170,7 +167,6 @@ ${companyName}`;
       template = `ENGINEERING & TECH OFFER: WELCOME TO ${companyName.toUpperCase()}
 
 DATE: ${new Date().toLocaleDateString()}
-STATUS: ${statusStr}
 RE: Technical Employment Offer for ${nameStr}
 
 Hi ${nameStr},
@@ -184,7 +180,6 @@ Annual Base Salary: ${currency || 'USD'} ${salary || '0'} / Year
 Target Start Date: ${joiningDate || '[START DATE]'}
 Work Setup: ${location || 'Hybrid / Flexible Remote'}
 Standard Working Hours: ${hoursStr}
-Current Offer Status: ${statusStr}
 
 EQUIPMENT, PERKS & TECH HIGHLIGHTS
 • Hardware Stipend: $1,500 one-time workstation budget for custom gear and accessories.
@@ -204,7 +199,6 @@ ${companyName}`;
       template = `GLOBAL DISTRIBUTED REMOTE EMPLOYMENT OFFER
 
 DATE: ${new Date().toLocaleDateString()}
-STATUS: ${statusStr}
 TO: ${nameStr}
 
 Dear ${nameStr},
@@ -218,7 +212,6 @@ Annual Base Compensation: ${currency || 'USD'} ${salary || '0'} per year
 Work Location: 100% Fully Remote (${location || 'Global Remote'})
 Core Hours Schedule: ${hoursStr}
 Expected Start Date: ${joiningDate || '[START DATE]'}
-Offer Status: ${statusStr}
 
 HOME OFFICE ALLOWANCE & UTILITIES
 • Monthly Connectivity Stipend: $100 monthly internet and communication reimbursement.
@@ -235,7 +228,6 @@ ${companyName}`;
       template = `GROWTH & SALES LEADERSHIP OFFER
 
 DATE: ${new Date().toLocaleDateString()}
-STATUS: ${statusStr}
 RE: Commercial Leadership Offer for ${nameStr}
 
 Dear ${nameStr},
@@ -249,7 +241,6 @@ Base Salary: ${currency || 'USD'} ${salary || '0'} / Year
 On-Target Earnings (OTE): Uncapped commission incentive structure linked to quarterly quotas
 Start Date: ${joiningDate || '[START DATE]'}
 Work Location: ${location || 'On-Site / Field Sales'}
-Current Offer Status: ${statusStr}
 
 COMMISSION REWARDS & EXCLUSIVE BENEFITS
 • Accelerated Tiers: Commission rates increase by 1.5x upon exceeding 100% of assigned revenue quota.
@@ -263,7 +254,6 @@ ${companyName}`;
       template = `INDEPENDENT CONTRACTOR & ADVISORY AGREEMENT
 
 DATE: ${new Date().toLocaleDateString()}
-STATUS: ${statusStr}
 CONTRACTOR: ${nameStr}
 
 Dear ${nameStr},
@@ -276,7 +266,6 @@ Department / Domain: ${departmentStr}
 Contract Retainer Fee: ${currency || 'USD'} ${salary || '0'} / Year (or agreed billing rate)
 Commencement Date: ${joiningDate || '[START DATE]'}
 Primary Work Setup: ${location || 'Independent / Remote'}
-Current Agreement Status: ${statusStr}
 
 INVOICING & INDEPENDENT STATUS
 • Billing Cycle: Invoices submitted at the end of each month, payable Net-15 days.
@@ -290,7 +279,6 @@ ${companyName}`;
 
 CONFIDENTIAL - FOR INTENDED RECIPIENT ONLY
 DATE: ${new Date().toLocaleDateString()}
-STATUS: ${statusStr}
 TO: ${nameStr}
 
 Dear ${nameStr},
